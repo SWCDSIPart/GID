@@ -12,7 +12,7 @@ router.post('/gid', function(req, res, next) {
       if(!error){
         service.addNewGID(req,res);
       }else{
-          res.status(405).send({error:'Invalid input'});
+        res.status(405).send({error:'Invalid input'});
       }
     }else{
         res.status(405).send({error:"body is empty!!"});
