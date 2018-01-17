@@ -79,7 +79,7 @@ exports.queryAll = callback => {
 }
 
 /* Example
-mysql.isExistGID('ABCD1234', rows => { console.log(result); });
+mysql.isExistGID('ABCD1234', result => { console.log(result); });
 */
 exports.isExistGID = (gid, callback) => {
 
@@ -115,7 +115,9 @@ exports.insert = (data, callback) => {
     [data.gid, data.value],
     (err, result) => {
       if (err) throw err;
-      callback(result);
+
+	  if (result.affectedRows > 0) callback('OK');
+	  else callback(result.message);
     }
   );
   db.end();
@@ -153,7 +155,9 @@ exports.deleteGID = (gid, callback) => {
     'DELETE FROM ' + TABLE + ' WHERE gid =?', gid,
 	(err, result) => {
 	  if (err) throw err;
-	  callback(result);
+
+	  if (result.affectedRows > 0) callback('OK');
+	  else callback(result.message);
 	}
   );
   db.end();
@@ -173,7 +177,10 @@ exports.updateGID = (data, callback) => {
     [data.value, data.gid],
     (err, result) => {
       if (err) throw err;
-      callback(result);
+
+
+	  if (result.affefctedRows > 0) callback('OK');
+	  else callback(result.message);
     }
   );
   db.end();
