@@ -79,6 +79,29 @@ exports.queryAll = callback => {
 }
 
 /* Example
+mysql.isExistGID('ABCD1234', rows => { console.log(result); });
+*/
+exports.isExistGID = (gid, callback) => {
+
+  var db = connect(err => {
+    if (err) throw err;
+  });
+
+  db.query(
+    //'SELECT EXISTS (SELECT value FROM ' + TABLE + ' WHERE gid = ?)'
+    'SELECT value FROM ' + TABLE + ' WHERE gid = ?', 
+	gid,
+	(err, rows, result) => {
+	  if(err) throw err;
+
+	  if (rows.length == 0) callback(false);
+	  else callback(true);
+	}
+  );
+  db.end();
+}
+
+/* Example
 mysql.insert({gid:'12345', value:'{"name":"lee", "phone":"01012341234"}'}, result => {});
 */
 exports.insert = (data, callback) => {
