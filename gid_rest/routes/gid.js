@@ -12,7 +12,7 @@ router.post('/gid', function(req, res, next) {
       if(!error){
         service.addNewGID(req,res);
       }else{
-          res.status(405).send({error:'Invalid input'});
+        res.status(405).send({error:'Invalid input'});
       }
     }else{
         res.status(405).send({error:"body is empty!!"});
@@ -66,4 +66,7 @@ router.delete('/gid/:gid', function(req, res, next) {
     res.send({result:'OK'});
 });
 
+router.post('/enrollRegister/:userName', function(req, res,next){
+  service.enrollRegister(req,res);
+});
 module.exports = router;
