@@ -1,8 +1,8 @@
 {
-    "name": "fabcar",
+    "name": "gid",
     "version": "1.0.0",
-    "description": "Hyperledger Fabric Car Sample Application",
-    "main": "fabcar.js",
+    "description": "Hyperledger Global ID Application",
+    "main": "gid.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -16,8 +16,7 @@
     "keywords": [
         "Hyperledger",
         "Fabric",
-        "Car",
-        "Sample",
+        "GID",
         "Application"
     ]
 }

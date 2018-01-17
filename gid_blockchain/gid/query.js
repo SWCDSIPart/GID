@@ -64,7 +64,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	// queryAllCars chaincode function - requires no arguments , ex: args: [''],
 	const request = {
 		//targets : --- letting this default to the peers assigned to the channel
-		chaincodeId: 'fabcar',
+		chaincodeId: 'gid',
 		fcn: 'queryGID',
 		args: ['10000']
 	};
@@ -105,7 +105,7 @@ fetchLedgerData(channel, arrayOfGID).then(function() {
 function fetchLedgerData(channel, arr) {
     return arr.reduce(function(promise, id) {
 	const request = {
-		chaincodeId: 'fabcar',
+		chaincodeId: 'gid',
 		fcn: 'queryGID',
 		args: [id]
 	};

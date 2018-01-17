@@ -18,9 +18,9 @@ chaincode-docker-devmode/chaincode/sacc/sacc
 chaincode-docker-devmode/chaincode/chaincode_example02/chaincode_example02
 
 # fabric sdk node modules
-fabcar/node_modules/
-fabcar/package-lock.json
-fabcar/hfc-key-store/
+gid/node_modules/
+gid/package-lock.json
+gid/hfc-key-store/
 
 # balance transfer sample
 balance-transfer/.DS_Store
