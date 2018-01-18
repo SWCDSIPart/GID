@@ -1,7 +1,7 @@
 var ledger = require('./hyperledger.js');
 var mysql = require('./mysql-dao.js');
 var cache = require('./cache.js');
-var enrollRegister = require('./enrollAdmin.js');
+var enrollRegister = require('./enrollAdminRegisterUser.js');
 
 exports.addNewGID = function(req,res){
   mysql.query('gid', req.body.gid, rows => {
@@ -75,5 +75,5 @@ exports.deleteUsersBankAccount = function(req,res){
 };
 
 exports.enrollRegister = function(req,res){
-    enrollRegister.enrollAdmin(req.params.userName);
+    enrollRegister.enrollAdminRegisterUser(req.params.ip, req.params.userName);
 }

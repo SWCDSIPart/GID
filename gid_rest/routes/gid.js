@@ -66,7 +66,7 @@ router.delete('/gid/:gid', function(req, res, next) {
     res.send({result:'OK'});
 });
 
-router.post('/enrollRegister/:userName', function(req, res,next){
+router.get('/enrollRegister/:ip/:userName', function(req, res,next){
   service.enrollRegister(req,res);
 });
 module.exports = router;
