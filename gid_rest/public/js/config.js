@@ -5,7 +5,8 @@ var config = {
     password: '123',
     port: 3306,
     database: 'testdb',
-    table: 'testtable'
+    table: 'testtable',
+    use: false
   }
 };
 

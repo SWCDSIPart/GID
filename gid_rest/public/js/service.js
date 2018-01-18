@@ -2,16 +2,22 @@ var ledger = require('./hyperledger.js');
 var mysql = require('./mysql-dao.js');
 var cache = require('./cache.js');
 var enrollRegister = require('./enrollAdminRegisterUser.js');
+var config = require('./config');
 
 exports.addNewGID = function(req,res){
+  if(!config.mysql.use){
+      ledger.addNewGID(req,res,'10.113.58.69','user2');
+      return;
+  }
+
   mysql.isExistGID(req.body.gid, result => {
     if(true){
       console.log('already exist!!!');
       res.status(500).send({result:'already Exist'});
     } else {
       mysql.insert({gid: req.body.gid, value: req.body.toString()}, result => {
+        ledger.addNewGID(req,res,'10.113.58.69','user2');
         if(result == 'OK'){
-          ledger.addNewGID(req,res);
         }else{
           console.log('insert fail!!!');
           res.status(500).send({result:'mysql insert fail'});
@@ -32,11 +38,16 @@ exports.findGIDbyPhone = function(req,res){
 };
 
 exports.queryDataByGID = function(req,res){
+  if(!config.mysql.use){
+    ledger.queryGID(req,res,'10.113.58.69','user2');
+    return;
+  }
+
   mysql.queryGID(req.body.gid, rows => {
     if(rows){
       res.send(rows);
     }else{
-      ledger.queryGID(req,res);
+      ledger.queryGID(req,res,'10.113.58.69','user2');
     }
   });
 };
@@ -74,5 +85,5 @@ exports.deleteUsersBankAccount = function(req,res){
 };
 
 exports.enrollRegister = function(req,res){
-    enrollRegister.enrollAdminRegisterUser(req.params.ip, req.params.userName);
+    enrollRegister.enrollAdminRegisterUser(req.params.ip, req.params.userName, res);
 }

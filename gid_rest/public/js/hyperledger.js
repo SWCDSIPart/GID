@@ -4,51 +4,14 @@ var path = require('path');
 var util = require('util');
 var os = require('os');
 
-var fabric_client = new Fabric_Client();
-
-// setup the fabric network
-var peerIP='10.113.58.69';
-var channel = fabric_client.newChannel('mychannel');
-var peer = fabric_client.newPeer('grpc://'+peerIP+':7051');
-channel.addPeer(peer);
-
-//
-var store_path = path.join(__dirname, 'hfc-key-store');
-console.log('Store path:'+store_path);
-
-var member_user = null;
-var tx_id = null;
-
-// create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
-Fabric_Client.newDefaultKeyValueStore({ path: store_path
-}).then((state_store) => {
-  // assign the store to the fabric client
-  fabric_client.setStateStore(state_store);
-  var crypto_suite = Fabric_Client.newCryptoSuite();
-  // use the same location for the state store (where the users' certificate are kept)
-  // and the crypto store (where the users' keys are kept)
-  var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
-  crypto_suite.setCryptoKeyStore(crypto_store);
-  fabric_client.setCryptoSuite(crypto_suite);
-
-  // get the enrolled user from persistence, this user will sign all requests
-  return fabric_client.getUserContext('user1', true);
-}).then((user_from_store) => {
-  if (user_from_store && user_from_store.isEnrolled()) {
-    console.log('Successfully loaded user1 from persistence');
-    member_user = user_from_store;
-  } else {
-    //throw new Error('Failed to get user1.... run registerUser.js');
-  }
-
-exports.addNewGID = function(req,res){
+exports.addNewGID = function(req,res,ip,username){
   var fabric_client = new Fabric_Client();
 
   // setup the fabric network
   var channel = fabric_client.newChannel('mychannel');
-  var peer = fabric_client.newPeer('grpc://localhost:7051');
+  var peer = fabric_client.newPeer('grpc://'+ip+':7051');
   channel.addPeer(peer);
-  var order = fabric_client.newOrderer('grpc://localhost:7050')
+  var order = fabric_client.newOrderer('grpc://'+ip+':7050')
   channel.addOrderer(order);
 
   //
@@ -70,13 +33,13 @@ exports.addNewGID = function(req,res){
   	fabric_client.setCryptoSuite(crypto_suite);
 
   	// get the enrolled user from persistence, this user will sign all requests
-  	return fabric_client.getUserContext('user1', true);
+  	return fabric_client.getUserContext(username, true);
   }).then((user_from_store) => {
   	if (user_from_store && user_from_store.isEnrolled()) {
-  		console.log('Successfully loaded user1 from persistence');
+  		console.log('Successfully loaded '+username+' from persistence');
   		member_user = user_from_store;
   	} else {
-  		throw new Error('Failed to get user1.... run registerUser.js');
+  		throw new Error('Failed to get '+username+'.... run registerUser.js');
   	}
 
   	// get a transaction id object based on the current user assigned to fabric client
@@ -88,15 +51,14 @@ exports.addNewGID = function(req,res){
   	// must send the proposal to endorsing peers
   	var request = {
   		//targets: let default to the peer assigned to the client
-  		chaincodeId: 'fabcar',
+  		chaincodeId: 'gid',
   		fcn: 'createGID',
   		//args: [''],
   		//args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
-  		args: ['CAR10', 'Dave'],
+  		args: [req.body.gid, JSON.stringify(req.body)],
   		chainId: 'mychannel',
   		txId: tx_id
   	};
-
   	// send the transaction proposal to the peers
   	return channel.sendTransactionProposal(request);
   }).then((results) => {
@@ -133,7 +95,7 @@ exports.addNewGID = function(req,res){
   		// get an eventhub once the fabric client has a user assigned. The user
   		// is required bacause the event registration must be signed
   		let event_hub = fabric_client.newEventHub();
-  		event_hub.setPeerAddr('grpc://localhost:7053');
+  		event_hub.setPeerAddr('grpc://'+ip+':7053');
 
   		// using resolve the promise so that result status may be processed
   		// under the then clause rather than having the catch clause process
@@ -183,17 +145,55 @@ exports.addNewGID = function(req,res){
 
   	if(results && results[1] && results[1].event_status === 'VALID') {
   		console.log('Successfully committed the change to the ledger by the peer');
+      res.send({result:'Successfully committed the change to the ledger by the peer'});
   	} else {
   		console.log('Transaction failed to be committed to the ledger due to ::'+results[1].event_status);
-  	}
+      res.status(500).send({result:'Transaction failed to be committed to the ledger'});
+    }
   }).catch((err) => {
   	console.error('Failed to invoke successfully :: ' + err);
+    res.status(500).send({result:'Failed to invoke successfully'});
   });
 
 };
 
-exports.queryGID = function(req,res){
+exports.queryGID = function(req,res,ip,username){
+  var fabric_client = new Fabric_Client();
 
+  // setup the fabric network
+  var peerIP=ip;
+  var channel = fabric_client.newChannel('mychannel');
+  var peer = fabric_client.newPeer('grpc://'+peerIP+':7051');
+  channel.addPeer(peer);
+
+  //
+  var store_path = path.join(__dirname, 'hfc-key-store');
+  console.log('Store path:'+store_path);
+
+  var member_user = null;
+  var tx_id = null;
+
+  // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
+  Fabric_Client.newDefaultKeyValueStore({ path: store_path
+  }).then((state_store) => {
+    // assign the store to the fabric client
+    fabric_client.setStateStore(state_store);
+    var crypto_suite = Fabric_Client.newCryptoSuite();
+    // use the same location for the state store (where the users' certificate are kept)
+    // and the crypto store (where the users' keys are kept)
+    var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
+    crypto_suite.setCryptoKeyStore(crypto_store);
+    fabric_client.setCryptoSuite(crypto_suite);
+
+    // get the enrolled user from persistence, this user will sign all requests
+    return fabric_client.getUserContext(username, true);
+  }).then((user_from_store) => {
+    if (user_from_store && user_from_store.isEnrolled()) {
+      console.log('Successfully loaded '+username+' from persistence');
+      member_user = user_from_store;
+    } else {
+      //throw new Error('Failed to get user1.... run registerUser.js');
+    }
     const request = {
   		//targets : --- letting this default to the peers assigned to the channel
   		chaincodeId: 'gid',
@@ -207,23 +207,20 @@ exports.queryGID = function(req,res){
   		if (query_responses && query_responses.length == 1) {
   			if (query_responses[0] instanceof Error) {
   				console.error("error from query = " + query_responses[0]);
+          res.status(500).send({result:'error from query'});
   			} else {
           //console.log(query_responses[0].toString());
   				console.log("Response is " + query_responses[0].toString());
-	 // if(req.params.gid < '4000'){
-	 // 	cache.set(req.params.gid, query_responses[0].toString());
-	 // 	console.log(req.params.gid+" < '8000' ::  map size :: "+ cache.size());
-	 // }
-          res.send(query_responses[0].toString());
+	        res.send(query_responses[0].toString());
   			}
   		} else {
   			console.log("No payloads were returned from query");
+        res.status(500).send({result:'No payloads were returned from query'});
   		}
 
   	});
-
-};
-
   }).catch((err) => {
-    console.error('FAiled to query successfully :: ' + err);
+      console.error('FAiled to query successfully :: ' + err);
+      res.status(500).send({result:'FAiled to query successfully'});
   });
+};
