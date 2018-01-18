@@ -9,30 +9,6 @@ DATABASE  = config.mysql.database;
 TABLE     = config.mysql.table;
 
 /* Example
-var mysql = require('./mysql-dao.js');
-mysql.query('phone', '01012341234', rows => { console.log(rows); });
-*/
-exports.query = (column, key, callback) => {
-
-  var db = connect(err => {
-    if (err) throw err;
-  });
-
-  db.query(
-    'SELECT value FROM ' + TABLE + ' WHERE ' + column + '= ?', key,
-    (err, rows, fields) => {
-      if (err) throw err;
-
-      if (rows.length == 0) {
-        callback(null);
-      }
-      else callback(rows);
-    }
-  );
-  db.end();
-}
-
-/* Example
 mysql.queryGID('ABCD1234', rows => { console.log(rows); });
 */
 exports.queryGID = (gid, callback) => {
@@ -118,25 +94,6 @@ exports.insert = (data, callback) => {
 
 	  if (result.affectedRows > 0) callback('OK');
 	  else callback(result.message);
-    }
-  );
-  db.end();
-}
-
-/* Example
-mysql.delete('gid', '12345', result => {});
-*/
-exports.delete = (column, key, callback) => {
-
-  var db = connect(err => {
-    if (err) throw err;
-  });
-
-  db.query(
-    'DELETE FROM ' + TABLE + ' WHERE ' + column + '= ?', key,
-    (err, result) => {
-      if (err) throw err;
-      callback(result);
     }
   );
   db.end();
