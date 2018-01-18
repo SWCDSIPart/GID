@@ -1,5 +1,4 @@
 var cache = require('./cache.js');
-
 var Fabric_Client = require('fabric-client');
 var path = require('path');
 var util = require('util');
@@ -8,8 +7,9 @@ var os = require('os');
 var fabric_client = new Fabric_Client();
 
 // setup the fabric network
+var peerIP='10.113.58.69';
 var channel = fabric_client.newChannel('mychannel');
-var peer = fabric_client.newPeer('grpc://localhost:7051');
+var peer = fabric_client.newPeer('grpc://'+peerIP+':7051');
 channel.addPeer(peer);
 
 //
@@ -38,7 +38,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
     console.log('Successfully loaded user1 from persistence');
     member_user = user_from_store;
   } else {
-    throw new Error('Failed to get user1.... run registerUser.js');
+    //throw new Error('Failed to get user1.... run registerUser.js');
   }
 
 exports.addNewGID = function(req,res){

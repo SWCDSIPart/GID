@@ -7,7 +7,7 @@
 /*
  * Enroll the admin user
  */
-exports.enrollAdim = function(userName){
+exports.enrollAdminRegisterUser = function(ip, userName, res){
   var Fabric_Client = require('fabric-client');
   var Fabric_CA_Client = require('fabric-ca-client');
 
@@ -20,7 +20,8 @@ exports.enrollAdim = function(userName){
   var fabric_ca_client = null;
   var admin_user = null;
   var member_user = null;
-  var username = 'user1';
+  var username = userName;
+  var peerIP = ip;
   var store_path = path.join(__dirname, 'hfc-key-store');
   console.log(' Store path:'+store_path);
 
@@ -40,7 +41,7 @@ exports.enrollAdim = function(userName){
       	verify: false
       };
       // be sure to change the http to https when the CA is running TLS enabled
-      fabric_ca_client = new Fabric_CA_Client('http://localhost:7054', tlsOptions , 'ca.example.com', crypto_suite);
+      fabric_ca_client = new Fabric_CA_Client('http://'+peerIP+':7054', tlsOptions , 'ca.example.com', crypto_suite);
 
       // first check to see if the admin is already enrolled
       return fabric_client.getUserContext('admin', true);
@@ -71,24 +72,28 @@ exports.enrollAdim = function(userName){
       }
   }).then(() => {
       console.log('Assigned the admin user to the fabric client ::' + admin_user.toString());
+      var crypto_suite = Fabric_Client.newCryptoSuite();
+      var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
+      crypto_suite.setCryptoKeyStore(crypto_store);
+      fabric_ca_client = new Fabric_CA_Client('http://'+peerIP+':7054', null , '', crypto_suite);
       return fabric_ca_client.register({enrollmentID: username, affiliation: 'org1.department1'}, admin_user);
   }).then((secret) => {
       // next we need to enroll the user with CA server
-      console.log('Successfully registered user1 - secret:'+ secret);
+      console.log('Successfully registered '+ username +' - secret:'+ secret);
       return fabric_ca_client.enroll({enrollmentID: username, enrollmentSecret: secret});
   }).then((enrollment) => {
-    console.log('Successfully enrolled member user "user1" ');
+    console.log('Successfully enrolled member user "'+username+'" ');
     return fabric_client.createUser(
        {username: username,
        mspid: 'Org1MSP',
        cryptoContent: { privateKeyPEM: enrollment.key.toBytes(), signedCertPEM: enrollment.certificate }
-       });
+    });
   }).then((user) => {
      member_user = user;
      return fabric_client.setUserContext(member_user);
   }).then(()=>{
-     console.log('User1 was successfully registered and enrolled and is ready to intreact with the fabric network');
+     console.log(username+ ' was successfully registered and enrolled and is ready to intreact with the fabric network');
   }).catch((err) => {
-     console.error('Failed to enroll admin: ' + err);
+     console.error('Failed to enroll admin & Register '+username+': ' + err);
   });
 };
