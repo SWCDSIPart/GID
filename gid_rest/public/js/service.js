@@ -4,13 +4,13 @@ var cache = require('./cache.js');
 var enrollRegister = require('./enrollAdminRegisterUser.js');
 
 exports.addNewGID = function(req,res){
-  mysql.query('gid', req.body.gid, rows => {
-    if(rows){
+  mysql.isExistGID(req.body.gid, result => {
+    if(true){
       console.log('already exist!!!');
       res.status(500).send({result:'already Exist'});
     } else {
-      mysql.insert({gid: req.body.gid, phone: req.body.toString()}, result => {
-        if(result){
+      mysql.insert({gid: req.body.gid, value: req.body.toString()}, result => {
+        if(result == 'OK'){
           ledger.addNewGID(req,res);
         }else{
           console.log('insert fail!!!');
@@ -32,7 +32,7 @@ exports.findGIDbyPhone = function(req,res){
 };
 
 exports.queryDataByGID = function(req,res){
-  mysql.query('gid', req.body.gid, rows => {
+  mysql.queryGID(req.body.gid, rows => {
     if(rows){
       res.send(rows);
     }else{
@@ -42,8 +42,8 @@ exports.queryDataByGID = function(req,res){
 };
 
 exports.updateGID = function(req,res){
-  mysql.update({gid:req.body.gid, phone:req.body}, result => {
-    if(result){
+  mysql.updateGID({gid:req.body.gid, value:req.body}, result => {
+    if(result == 'OK'){
       ledger.updateGID(req,res);
     }else{
       res.status(500).send({result:'update Fail'});
@@ -52,14 +52,13 @@ exports.updateGID = function(req,res){
 };
 
 exports.deleteGID = function(req,res){
-  mysql.delete('gid', req.body.gid, result => {
-      if(result){
+  mysql.deleteGID(req.body.gid, result => {
+      if(result == 'OK'){
         ledger.deleteGID(req,res);
       }else{
         res.status(500).send({result:"delete fail"});
       }
   });
-
 };
 
 exports.bankAccountRegistration = function(req,res){
