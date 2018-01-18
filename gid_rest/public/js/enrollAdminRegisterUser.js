@@ -93,7 +93,9 @@ exports.enrollAdminRegisterUser = function(ip, userName, res){
      return fabric_client.setUserContext(member_user);
   }).then(()=>{
      console.log(username+ ' was successfully registered and enrolled and is ready to intreact with the fabric network');
+     res.send({result:'success regi'})
   }).catch((err) => {
      console.error('Failed to enroll admin & Register '+username+': ' + err);
+     res.status(500).send({result:'failed to enroll'});
   });
 };
