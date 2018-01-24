@@ -6,8 +6,8 @@ var config = require('./config');
 
 exports.addNewGID = function(req,res){
   if(!config.mysql.use){
-      ledger.addNewGID(req,res,'10.113.58.69','user2');
       return;
+      ledger.invokeGID(req,res,'10.113.58.69','user2','CREATE');
   }
 
   mysql.isExistGID(req.body.gid, result => {
@@ -16,7 +16,7 @@ exports.addNewGID = function(req,res){
       res.status(500).send({result:'already Exist'});
     } else {
       mysql.insert({gid: req.body.gid, value: req.body.toString()}, result => {
-        ledger.addNewGID(req,res,'10.113.58.69','user2');
+        ledger.invokeGID(req,res,'10.113.58.69','user2','CREATE');
         if(result == 'OK'){
         }else{
           console.log('insert fail!!!');
@@ -55,7 +55,7 @@ exports.queryDataByGID = function(req,res){
 exports.updateGID = function(req,res){
   mysql.updateGID({gid:req.body.gid, value:req.body}, result => {
     if(result == 'OK'){
-      ledger.updateGID(req,res);
+      ledger.invokeGID(req,res,'10.113.58.69','user2','UPDATE');
     }else{
       res.status(500).send({result:'update Fail'});
     }
@@ -65,7 +65,7 @@ exports.updateGID = function(req,res){
 exports.deleteGID = function(req,res){
   mysql.deleteGID(req.body.gid, result => {
       if(result == 'OK'){
-        ledger.deleteGID(req,res);
+        ledger.invokeGID(req,res,'10.113.58.69','user2','DELETE');
       }else{
         res.status(500).send({result:"delete fail"});
       }

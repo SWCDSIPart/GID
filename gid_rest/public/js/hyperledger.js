@@ -4,7 +4,7 @@ var path = require('path');
 var util = require('util');
 var os = require('os');
 
-exports.addNewGID = function(req,res,ip,username){
+exports.invokeGID = function(req,res,ip,username,method){
   var fabric_client = new Fabric_Client();
 
   // setup the fabric network
@@ -49,13 +49,22 @@ exports.addNewGID = function(req,res,ip,username){
   	// createCar chaincode function - requires 5 args, ex: args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
   	// changeCarOwner chaincode function - requires 2 args , ex: args: ['CAR10', 'Dave'],
   	// must send the proposal to endorsing peers
+    var method_name;
+    var argument;
+    if(method == 'CREATE' || method == 'UPDATE'){
+      method_name = 'createGID';
+      argument = [req.body.gid, JSON.stringify(req.body)];
+    }else{
+      method_name = 'deleteGID';
+      argument = [req.body.gid];
+    }
   	var request = {
   		//targets: let default to the peer assigned to the client
   		chaincodeId: 'gid',
-  		fcn: 'createGID',
+  		fcn: method_name,
   		//args: [''],
   		//args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
-  		args: [req.body.gid, JSON.stringify(req.body)],
+  		args: argument,
   		chainId: 'mychannel',
   		txId: tx_id
   	};
