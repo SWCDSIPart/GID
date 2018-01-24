@@ -72,10 +72,14 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 	// Route to the appropriate handler function to interact with the ledger appropriately
 	if function == "queryGID" {
 		return s.queryGID(APIstub, args)
+	} else if function == "createGID" || function == "updateGID" {
+		return s.createGID(APIstub, args)
+	} else if function == "deleteGID" {
+		return s.deleteGID(APIstub, args)
+//	} else if function == "invalidateGID" {
+//		return s.invalidateGID(APIstub, args)
 	} else if function == "initLedger" {
 		return s.initLedger(APIstub)
-	} else if function == "createGID" {
-		return s.createGID(APIstub, args)
 	} else if function == "queryAll" {
 		return s.queryAll(APIstub)
 	}
@@ -162,6 +166,17 @@ func (s *SmartContract) createGID(APIstub shim.ChaincodeStubInterface, args []st
 	//valAsBytes, _ := json.Marshal(val)
 	//APIstub.PutState(args[0], valAsBytes)
 	APIstub.PutState(args[0], val.Value)
+
+	return shim.Success(nil)
+}
+
+func (s *SmartContract) deleteGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	APIstub.DelState(args[0])
 
 	return shim.Success(nil)
 }
