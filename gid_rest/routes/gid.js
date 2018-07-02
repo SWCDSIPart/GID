@@ -22,7 +22,8 @@ router.post('/gid', function(req, res, next) {
 router.get('/gid', function(req, res, next) {
     console.log("recv >>"+JSON.stringify(req.query));
     if(validator.isExistPhoneNumber(req.query.phone)) {
-      var gid='08a4d1db1438ff353fa5e8b29830b4088377898568ca47a50eb7e386453e3aa8';
+     // var gid='08a4d1db1438ff353fa5e8b29830b4088377898568ca47a50eb7e386453e3aa8';
+      var gid='308c28be168539b706a3cc965e1d124b1efaeae27c1ad5a627a5c1cdf2a19821';
       service.findGIDbyPhone(req,res);
       res.send({result:'ok',gid:gid});
     }else{

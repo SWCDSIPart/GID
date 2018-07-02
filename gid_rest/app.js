@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 var gid = require('./routes/gid');
-var fintto = require('./routes/fintto');
+//var fintto = require('./routes/fintto');
 
 var app = express();
 
@@ -25,6 +25,7 @@ var swaggerDefinition = {
   basePath: '/', // Base path (optional)
   schemes: ['http'],
 };
+
 // Options for the swagger docs
 var options = {
   // Import swaggerDefinitions
@@ -32,6 +33,7 @@ var options = {
   // Path to the API docs
   apis: ['./gid.yaml'],
 };
+
 // Initialize swagger-jsdoc -> returns validated swagger spec in json format
 var swaggerSpec = swaggerJSDoc(options);
 
@@ -54,10 +56,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(expressValidator());
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/', gid);
-app.use('/', fintto);
+//app.use('/', fintto);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

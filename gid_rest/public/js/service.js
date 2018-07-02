@@ -39,7 +39,7 @@ exports.findGIDbyPhone = function(req,res){
 
 exports.queryDataByGID = function(req,res){
   if(!config.mysql.use){
-    ledger.queryGID(req,res,'10.113.58.69','user2');
+    ledger.queryGID(req,res,'127.0.0.1','user1');
     return;
   }
 
