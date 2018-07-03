@@ -19,7 +19,7 @@ paths:
       tags:
         - gid
       summary: Add a new GID
-      description: ''
+      description: Add a new GID.
       operationId: addGID
       consumes:
         - application/json
@@ -61,7 +61,7 @@ paths:
       tags:
         - gid
       summary: Updates GID data
-      description: ''
+      description: Updates GID data.
       operationId: updateGID
       consumes:
         - application/x-www-form-urlencoded
@@ -94,7 +94,7 @@ paths:
       tags:
         - gid
       summary: Deletes specified GID
-      description: ''
+      description: Deletes specified GID.
       operationId: deleteGID
       produces:
         - application/json
@@ -121,13 +121,13 @@ paths:
           description: Invalid GID supplied or GID has child.
         '404':
           description: GID not found
-
   '/gid/{GID}/parent':
     get:
       tags:
         - gid
       summary: Returns parent GID of specified GID
-      description: ''
+      description: 
+        Returns parent GID of specified GID. If no parent, returns {}.
       operationId: getParentGID
       produces:
         - application/json
@@ -143,18 +143,18 @@ paths:
           type: string
       responses:
         '200':
-          description: successful operation
+          description: 
+            successful operation. 
           schema:
             $ref: '#/definitions/GID'
         '404':
           description: GID not found
-
   '/gid/{GID}/children':
     get:
       tags:
         - gid
-      summary: Returns all child GID list of  specified GID
-      description: ''
+      summary: Returns all child GID list of specified GID
+      description: Returns all child GID list of specified GID. If no child, returns {}.
       operationId: getChildGIDList
       produces:
         - application/json
@@ -181,13 +181,12 @@ paths:
                   format: 64byte
         '404':
           description: GID not found
-
   '/gid/{GID}/devices':
     get:
       tags:
         - gid
-      summary: Returns all device GID list of specified GID
-      description: ''
+      summary: Returns all child device GID list of specified GID
+      description: Returns all child device GID list of specified GID. If no child device, return {}.
       operationId: getDeviceGIDList
       produces:
         - application/json
@@ -214,41 +213,38 @@ paths:
                   format: 64byte
         '404':
           description: GID not found
-
-  '/gid/{GID}/wallets':
-    get:
-      tags:
-        - gid
-      summary: Returns all wallet GID list of specified GID
-      description: ''
-      operationId: getWalletGIDList
-      produces:
-        - application/json
-      parameters:
-        - name: api_key
-          in: header
-          required: false
-          type: string
-        - name: GID
-          in: path
-          description: GID to get wallets
-          required: true
-          type: string
-      responses:
-        '200':
-          description: successful operation
-          schema:
-            type: object
-            properties:
-              wallets:
-                type: array
-                items:
-                  type: string
-                  format: 64byte
-        '404':
-          description: GID not found
-
-
+  # '/gid/{GID}/wallets':
+  #   get:
+  #     tags:
+  #       - gid
+  #     summary: Returns all wallet GID list of specified GID
+  #     description: Returns all wallet GID list of specified GID. If no wallet, return {}.
+  #     operationId: getWalletGIDList
+  #     produces:
+  #       - application/json
+  #     parameters:
+  #       - name: api_key
+  #         in: header
+  #         required: false
+  #         type: string
+  #       - name: GID
+  #         in: path
+  #         description: GID to get wallets
+  #         required: true
+  #         type: string
+  #     responses:
+  #       '200':
+  #         description: successful operation
+  #         schema:
+  #           type: object
+  #           properties:
+  #             wallets:
+  #               type: array
+  #               items:
+  #                 type: string
+  #                 format: 64byte
+  #       '404':
+  #         description: GID not found
 definitions:
   GID:
     type: object
@@ -258,7 +254,7 @@ definitions:
         format: 64byte
       type:
         type: string
-        enum: 
+        enum:
           - person
           - device
           - wallet
