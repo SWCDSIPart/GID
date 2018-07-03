@@ -245,6 +245,7 @@ paths:
   #                 format: 64byte
   #       '404':
   #         description: GID not found
+
 definitions:
   GID:
     type: object
@@ -267,6 +268,9 @@ definitions:
         items:
           type: string
           format: 64byte
+      key:
+        type: string
+        format: 64byte
       metadata:
         type: object
         description: Data of GID
