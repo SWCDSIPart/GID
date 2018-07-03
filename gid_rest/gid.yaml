@@ -1,8 +1,8 @@
 swagger: '2.0'
 info:
-  description: RESTful API for Global ID service & Fintto Application
-  version: 0.0.1
-  title: Global ID service/Fintto RESTful Server
+  description: RESTful API for Global ID service
+  version: 0.0.2
+  title: Global ID service
 host: to.be.defined
 basePath: /v1
 tags:
@@ -10,11 +10,6 @@ tags:
     description: APIs for GID service
     externalDocs:
       description: Find out more
-      url: 'http://swagger.io'
-  - name: fintto
-    description: Operations about fintto service
-    externalDocs:
-      description: Find out more about our store
       url: 'http://swagger.io'
 schemes:
   - https
@@ -40,35 +35,6 @@ paths:
       responses:
         '405':
           description: Invalid input
-    get:
-      tags:
-        - gid
-      summary: Find GID by phone number
-      description: ''
-      operationId: getGIDByPhone
-      produces:
-        - application/json
-      parameters:
-        - in: query
-          name: phone
-          type: string
-          required: true
-          description: Hashed phone number to query
-      responses:
-        '200':
-          description: '가입자의 경우 gid, 미가입자의 경우 “” 리턴'
-          schema:
-            type: object
-            properties:
-              result:
-                type: string
-                example: Ok
-              gid:
-                type: string
-                example: >-
-                  08a4d1db1438ff353fa5e8b29830b4088377898568ca47a50eb7e386453e3aa8
-        '500':
-          description: Internal Server Errors
   '/gid/{GID}':
     get:
       tags:
@@ -127,7 +93,7 @@ paths:
     delete:
       tags:
         - gid
-      summary: Deletes a GID
+      summary: Deletes specified GID
       description: ''
       operationId: deleteGID
       produces:
@@ -152,104 +118,137 @@ paths:
                 example: Ok
           description: Delete done
         '400':
-          description: Invalid GID supplied
+          description: Invalid GID supplied or GID has child.
         '404':
           description: GID not found
-  '/gid/{GID}/bank':
-    post:
-      tags:
-        - fintto
-      summary: Bank account registration
-      description: This can only be done by the logged in user.
-      operationId: registerBankAccont
-      produces:
-        - application/json
-      parameters:
-        - name: GID
-          in: path
-          description: GID to register a new bank account
-          required: true
-          type: string
-        - in: body
-          name: body
-          description: Bank account information to register
-          required: true
-          schema:
-            type: object
-            properties:
-              bankname:
-                type: string
-              account:
-                type: string
-              CI:
-                type: string
-              primary:
-                type: boolean
-                default: false
-      responses:
-        default:
-          description: successful operation
+
+  '/gid/{GID}/parent':
     get:
       tags:
-        - fintto
-      summary: Get user's primary bank
-      description: This can only be done by the logged in user.
-      operationId: getPrimaryBank
+        - gid
+      summary: Returns parent GID of specified GID
+      description: ''
+      operationId: getParentGID
       produces:
         - application/json
       parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
         - name: GID
           in: path
-          description: GID to get primary bank
+          description: GID to get parent
           required: true
           type: string
       responses:
         '200':
-          description: |-
-            User's primary bank.
-            'bank' property will be null if the user has no registered bank.
+          description: successful operation
           schema:
-            type: object
-            properties:
-              result:
-                type: string
-                example: Ok
-              bank:
-                type: string
-                example: 한국은행
+            $ref: '#/definitions/GID'
         '404':
           description: GID not found
-  '/gid/{GID}/bank/{bankname}':
-    delete:
+
+  '/gid/{GID}/children':
+    get:
       tags:
-        - fintto
-      summary: Delete user's bank account
-      description: This can only be done by the logged in user.
-      operationId: deleteBankAccount
+        - gid
+      summary: Returns all child GID list of  specified GID
+      description: ''
+      operationId: getChildGIDList
       produces:
         - application/json
       parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
         - name: GID
           in: path
-          description: GID to delete bank account
-          required: true
-          type: string
-        - name: bankname
-          in: path
-          description: Bank name to be deleted
+          description: GID to get children
           required: true
           type: string
       responses:
         '200':
+          description: successful operation
           schema:
             type: object
             properties:
-              result:
-                type: string
-                example: Ok
-          description: Bank account deleted
+              children:
+                type: array
+                items:
+                  type: string
+                  format: 64byte
         '404':
-          description: GID or bank not found
+          description: GID not found
+
+  '/gid/{GID}/devices':
+    get:
+      tags:
+        - gid
+      summary: Returns all device GID list of specified GID
+      description: ''
+      operationId: getDeviceGIDList
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: GID
+          in: path
+          description: GID to get devices
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: object
+            properties:
+              devices:
+                type: array
+                items:
+                  type: string
+                  format: 64byte
+        '404':
+          description: GID not found
+
+  '/gid/{GID}/wallets':
+    get:
+      tags:
+        - gid
+      summary: Returns all wallet GID list of specified GID
+      description: ''
+      operationId: getWalletGIDList
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: GID
+          in: path
+          description: GID to get wallets
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: object
+            properties:
+              wallets:
+                type: array
+                items:
+                  type: string
+                  format: 64byte
+        '404':
+          description: GID not found
+
+
 definitions:
   GID:
     type: object
@@ -257,14 +256,21 @@ definitions:
       gid:
         type: string
         format: 64byte
-      username:
+      type:
         type: string
-      phone:
+        enum: 
+          - person
+          - device
+          - wallet
+          - group
+          - etc.
+      parent:
         type: string
-      publicKey:
-        type: string
-        description: not used in current version
-      userStatus:
-        type: integer
-        format: int32
-        description: User Status
+      children:
+        type: array
+        items:
+          type: string
+          format: 64byte
+      metadata:
+        type: object
+        description: Data of GID
