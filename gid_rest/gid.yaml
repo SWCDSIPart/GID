@@ -20,7 +20,7 @@ paths:
         - gid
       summary: Add a new GID
       description: Add a new GID.
-      operationId: addGID
+      operationId: createGID
       consumes:
         - application/json
       produces:
