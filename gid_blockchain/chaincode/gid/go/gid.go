@@ -72,27 +72,40 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 	// Retrieve the requested Smart Contract function and arguments
 	function, args := APIstub.GetFunctionAndParameters()
 	// Route to the appropriate handler function to interact with the ledger appropriately
-	if function == "queryGID" {
-		return s.queryGID(APIstub, args)
-	} else if function == "createGID" {
+	switch function {
+	case "createGID" :
 		return s.createGID(APIstub, args)
-	} else if function == "updateGID" {
-//		return s.updateGID(APIstub, args)
-	} else if function == "deleteGID" {
+	case "queryGID" :
+		return s.queryGID(APIstub, args)
+	case "updateGID" :
+		return s.updateGID(APIstub, args)
+	case "deleteGID" :
 		return s.deleteGID(APIstub, args)
-	} else if function == "getParent" {
+	case "getParent" :
 		return s.getParent(APIstub, args)
-
-//	} else if function == "invalidateGID" {
-//		return s.invalidateGID(APIstub, args)
-	} else if function == "initLedger" {
+	case "initLedger" :
 		return s.initLedger(APIstub)
-	} else if function == "queryAll" {
+	case "queryAll" : // depricated
 		return s.queryAll(APIstub)
 	}
 
 	return shim.Error("Invalid Smart Contract function \"name\".")
 }
+
+
+func (s *SmartContract) createGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+  }
+
+	var gid0 GID
+	_= json.Unmarshal([]byte(args[0]), &gid0)
+	valAsBytes, _ := json.Marshal(gid0)
+	APIstub.PutState(gid0.Gid, valAsBytes)
+
+	return shim.Success(nil)
+}
+
 
 func (s *SmartContract) queryGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
@@ -103,6 +116,52 @@ func (s *SmartContract) queryGID(APIstub shim.ChaincodeStubInterface, args []str
 
 	return shim.Success(valAsBytes)
 }
+
+
+func (s *SmartContract) updateGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+  }
+
+	var gid0 GID
+	_= json.Unmarshal([]byte(args[1]), &gid0)
+
+	if gid0.Gid != args[0] {
+		return shim.Error("GID not matched: " + args[0] + ":" + gid0.Gid)
+  }
+
+	valAsBytes, _ := json.Marshal(gid0)
+	APIstub.PutState(gid0.Gid, valAsBytes)
+
+	return shim.Success(nil)
+}
+
+
+func (s *SmartContract) deleteGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	APIstub.DelState(args[0])
+
+	return shim.Success(nil)
+}
+
+
+func (s *SmartContract) getParent(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	var gid0 GID
+	valAsBytes, _ := APIstub.GetState(args[0])
+	_= json.Unmarshal(valAsBytes, &gid0)
+	parentVal, _ := APIstub.GetState(gid0.Parent)
+
+	return shim.Success(parentVal)
+}
+
 
 func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Response {
 	vals := [][]byte{
@@ -166,50 +225,6 @@ func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Respo
 	return shim.Success(nil)
 }
 
-func (s *SmartContract) createGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
-
-	var val = []byte(args[0])
-
-	var gid0 GID
-	_= json.Unmarshal([]byte(args[0]), &gid0)
-
-	valAsBytes, _ := json.Marshal(val)
-	APIstub.PutState(gid0.Gid, valAsBytes)
-
-	return shim.Success(nil)
-}
-
-func (s *SmartContract) deleteGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
-
-	APIstub.DelState(args[0])
-
-	return shim.Success(nil)
-}
-
-
-
-func (s *SmartContract) getParent(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
-
-	valAsBytes, _ := APIstub.GetState(args[0])
-
-	var gid0 GID
-	_= json.Unmarshal(valAsBytes, &gid0)
-
-	parentVal, _ := APIstub.GetState(gid0.Parent)
-
-	return shim.Success(parentVal)
-
-}
 
 // depricated.
 func (s *SmartContract) queryAll(APIstub shim.ChaincodeStubInterface) sc.Response {
