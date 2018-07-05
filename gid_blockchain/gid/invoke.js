@@ -64,7 +64,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 		fcn: 'createGID',
 		//args: [''],
 		//args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
-		args: ['10000', '{"phone": "010321312312312", "name": "Dave"}'],
+		args: ['{"gid":"308C28BE168539B706A3CC965E1D124B1EFAEAE27C1AD5A627A5C1CDF2A19821","type":"person","parent":"","children":"","key":"","metadata":""}'],
 		chainId: 'mychannel',
 		txId: tx_id
 	};
