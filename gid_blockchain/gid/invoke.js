@@ -61,9 +61,9 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	var request = {
 		//targets: let default to the peer assigned to the client
 		chaincodeId: 'gid',
+		//fcn: 'queryGID',
+		//args: ['08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8'],
 		fcn: 'createGID',
-		//args: [''],
-		//args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
 		args: ['{"gid":"308C28BE168539B706A3CC965E1D124B1EFAEAE27C1AD5A627A5C1CDF2A19821","type":"person","parent":"","children":"","key":"","metadata":""}'],
 		chainId: 'mychannel',
 		txId: tx_id

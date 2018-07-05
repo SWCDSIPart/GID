@@ -66,7 +66,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 		//targets : --- letting this default to the peers assigned to the channel
 		chaincodeId: 'gid',
 		fcn: 'queryGID',
-		args: ['9999']
+		args: ['308C28BE168539B706A3CC965E1D124B1EFAEAE27C1AD5A627A5C1CDF2A19821']
 	};
 
 	// send the query proposal to the peer
