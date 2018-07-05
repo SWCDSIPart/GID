@@ -52,9 +52,14 @@ type GID struct {
 	Metadata string `json:"metatdata"`
 }
 
+type CHILDREN struct {
+	Children	[]string `json:"children"`
+}
 
-//var ca_hit, ca_miss float32
-//var cache [MAX_CACHE_SIZE][]byte
+type DEVICES struct {
+	Devices	[]string `json:"devices"`
+}
+
 /*
  * The Init method is called when the Smart Contract "gid" is instantiated by the blockchain network
  * Best practice is to have any Ledger initialization in separate function -- see initLedger()
@@ -83,6 +88,10 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 		return s.deleteGID(APIstub, args)
 	case "getParent" :
 		return s.getParent(APIstub, args)
+	case "getChildren" :
+		return s.getChildren(APIstub, args)
+	case "getDevices" :
+		return s.getDevices(APIstub, args)
 	case "initLedger" :
 		return s.initLedger(APIstub)
 	case "queryAll" : // depricated
@@ -163,11 +172,56 @@ func (s *SmartContract) getParent(APIstub shim.ChaincodeStubInterface, args []st
 }
 
 
+func (s *SmartContract) getChildren(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	var gid0 GID
+	valAsBytes, _ := APIstub.GetState(args[0])
+	_= json.Unmarshal(valAsBytes, &gid0)
+
+	var childList = CHILDREN {gid0.Children}
+
+	children, _ := json.Marshal(childList)
+	return shim.Success(children)
+}
+
+
+func (s *SmartContract) getDevices(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	var gid0 GID
+	var deviceList DEVICES
+	valAsBytes, _ := APIstub.GetState(args[0])
+	_= json.Unmarshal(valAsBytes, &gid0)
+
+	i := 0
+	for i < len(gid0.Children) {
+		var childGid GID
+		child, _ := APIstub.GetState(gid0.Children[i])
+		_= json.Unmarshal(child, &childGid)
+
+		if childGid.Type == "device" {
+			deviceList.Devices = append(deviceList.Devices, childGid.Gid)
+		}
+
+		i = i + 1
+	}
+
+	devices, _ := json.Marshal(deviceList)
+	return shim.Success(devices)
+}
+
+
 func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Response {
 	vals := [][]byte{
-		[]byte(`{"gid":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "type":"person", "parent":"", "children" : ["F5AA85054BC2A1912996F9E4B2685F8088CEDEFA7997315E484160F82523EB48", "23E7CDC6D42116565405B57CA27F11A01640C6FEB482BC4DDB0B6E928F7CBBE3", "00DEDD0C67B1A74792A93D899C82F2E2D89272D2BE541D07E6B58705251C333E"], "key":"", "metadata":""}`),
+		[]byte(`{"gid":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "type":"person", "parent":"", "children" : ["F5AA85054BC2A1912996F9E4B2685F8088CEDEFA7997315E484160F82523EB48", "23E7CDC6D42116565405B57CA27F11A01640C6FEB482BC4DDB0B6E928F7CBBE3", "F16551334EDB3EF1091AF1409C6993C258352553F9FE4FF8B2DC3DE99617BDDC", "00DEDD0C67B1A74792A93D899C82F2E2D89272D2BE541D07E6B58705251C333E"], "key":"", "metadata":""}`),
 		[]byte(`{"gid":"23E7CDC6D42116565405B57CA27F11A01640C6FEB482BC4DDB0B6E928F7CBBE3", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`),
 		[]byte(`{"gid":"F5AA85054BC2A1912996F9E4B2685F8088CEDEFA7997315E484160F82523EB48", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`),
+		[]byte(`{"gid":"F16551334EDB3EF1091AF1409C6993C258352553F9FE4FF8B2DC3DE99617BDDC", "type":"wallet", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`),
 		[]byte(`{"gid":"00DEDD0C67B1A74792A93D899C82F2E2D89272D2BE541D07E6B58705251C333E", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`)}
 
 	i := 0

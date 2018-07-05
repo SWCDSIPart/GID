@@ -65,8 +65,10 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	const request = {
 		//targets : --- letting this default to the peers assigned to the channel
 		chaincodeId: 'gid',
-		fcn: 'queryGID',
-		args: ['308C28BE168539B706A3CC965E1D124B1EFAEAE27C1AD5A627A5C1CDF2A19821']
+		//fcn: 'getChildren',
+		fcn: 'getDevices',
+		//args: ['308C28BE168539B706A3CC965E1D124B1EFAEAE27C1AD5A627A5C1CDF2A19821']
+		args: ['08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8']
 	};
 
 	// send the query proposal to the peer
