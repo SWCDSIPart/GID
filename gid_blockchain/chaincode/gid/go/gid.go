@@ -60,6 +60,11 @@ type DEVICES struct {
 	Devices	[]string `json:"devices"`
 }
 
+type PARENT struct {
+	Parent string `json:"parent"`
+}
+
+
 /*
  * The Init method is called when the Smart Contract "gid" is instantiated by the blockchain network
  * Best practice is to have any Ledger initialization in separate function -- see initLedger()
@@ -88,6 +93,8 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 		return s.deleteGID(APIstub, args)
 	case "getParent" :
 		return s.getParent(APIstub, args)
+	case "setParent" :
+		return s.setParent(APIstub, args)
 	case "getChildren" :
 		return s.getChildren(APIstub, args)
 	case "getDevices" :
@@ -112,7 +119,7 @@ func (s *SmartContract) createGID(APIstub shim.ChaincodeStubInterface, args []st
 	valAsBytes, _ := json.Marshal(gid0)
 	APIstub.PutState(gid0.Gid, valAsBytes)
 
-	return shim.Success(nil)
+	return shim.Success(valAsBytes)
 }
 
 
@@ -152,6 +159,9 @@ func (s *SmartContract) deleteGID(APIstub shim.ChaincodeStubInterface, args []st
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
 
+	var gid0 GID
+	valAsBytes, _ := APIstub.GetState(args[0])
+	_= json.Unmarshal(valAsBytes, &gid0)
 	APIstub.DelState(args[0])
 
 	return shim.Success(nil)
@@ -169,6 +179,57 @@ func (s *SmartContract) getParent(APIstub shim.ChaincodeStubInterface, args []st
 	parentVal, _ := APIstub.GetState(gid0.Parent)
 
 	return shim.Success(parentVal)
+}
+
+
+func (s *SmartContract) setParent(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	var gid0, parent GID
+	valAsBytes, _ := APIstub.GetState(args[0])
+	_= json.Unmarshal(valAsBytes, &gid0)
+
+	if gid0.Type == "person" {
+		return shim.Error("No parent GID allowed to person type.")
+	}
+
+	if args[1] == "" {
+		// remove child from parent GID object
+		parentVal, _ := APIstub.GetState(gid0.Parent)
+		_= json.Unmarshal(parentVal, &parent)
+
+		for i, v := range parent.Children {
+	    if v == args[0] {
+	        parent.Children = append(parent.Children[:i], parent.Children[i+1:]...)
+	        break
+	    }
+		}
+
+		// set parent as empty.
+		gid0.Parent = ""
+	} else {
+			if gid0.Parent != "" {
+				return shim.Error("Parent GID is not empty.")
+			}
+
+			// add child to parent GID object
+			gid0.Parent = args[1]
+
+			parentVal, _ := APIstub.GetState(gid0.Parent)
+			_= json.Unmarshal(parentVal, &parent)
+
+			parent.Children = append(parent.Children, args[0])
+	}
+
+	val0, _ := json.Marshal(gid0)
+	APIstub.PutState(gid0.Gid, val0)
+
+	val1, _ := json.Marshal(parent)
+	APIstub.PutState(parent.Gid, val1)
+
+	return shim.Success(nil)
 }
 
 
