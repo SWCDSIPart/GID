@@ -18,8 +18,8 @@ paths:
     post:
       tags:
         - gid
-      summary: Add a new GID
-      description: Add a new GID.
+      summary: Create a new GID object
+      description: Create a new GID object.
       operationId: createGID
       consumes:
         - application/json
@@ -28,19 +28,23 @@ paths:
       parameters:
         - in: body
           name: body
-          description: GID object that needs to be added to the store
+          description: GID object that needs to be added to the store.
           required: true
           schema:
             $ref: '#/definitions/GID'
       responses:
+        '200':
+          description: successful operation. returns created GID object.
+          schema:
+            $ref: '#/definitions/GID'
         '405':
           description: Invalid input
   '/gid/{GID}':
     get:
       tags:
         - gid
-      summary: Query data by GID
-      description: Returns a single GID data
+      summary: Query object by GID
+      description: Returns a single GID object
       operationId: getGIDById
       produces:
         - application/json
@@ -60,11 +64,11 @@ paths:
     post:
       tags:
         - gid
-      summary: Updates GID data
-      description: Updates GID data.
+      summary: Updates GID object data
+      description: Updates GID object data.
       operationId: updateGID
       consumes:
-        - application/x-www-form-urlencoded
+        - application/json
       produces:
         - application/json
       parameters:
@@ -93,8 +97,8 @@ paths:
     delete:
       tags:
         - gid
-      summary: Deletes specified GID
-      description: Deletes specified GID.
+      summary: Deletes specified GID object
+      description: Deletes specified GID object.
       operationId: deleteGID
       produces:
         - application/json
@@ -125,9 +129,8 @@ paths:
     get:
       tags:
         - gid
-      summary: Returns parent GID of specified GID
-      description: 
-        Returns parent GID of specified GID. If no parent, returns {}.
+      summary: Returns parent GID object of specified GID
+      description: 'Returns parent GID object of specified GID. If no parent, returns {}.'
       operationId: getParentGID
       produces:
         - application/json
@@ -143,10 +146,49 @@ paths:
           type: string
       responses:
         '200':
-          description: 
-            successful operation. 
+          description: successful operation.
           schema:
             $ref: '#/definitions/GID'
+        '404':
+          description: GID not found
+    post:
+      tags:
+        - gid
+      summary: Set parent of designated GID
+      description: 'Set parent of designated GID.'
+      operationId: setParentGID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: GID
+          in: path
+          description: GID to set parent
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: GID object to be parent.
+          required: true
+          schema:
+            type: object
+            properties:
+              parent:
+                type: string
+      responses:
+        '200':
+          description: successful operation.
+          schema:
+            type: object
+            properties:
+              result:
+                type: string
+                example: Ok
         '404':
           description: GID not found
   '/gid/{GID}/children':
@@ -154,7 +196,7 @@ paths:
       tags:
         - gid
       summary: Returns all child GID list of specified GID
-      description: Returns all child GID list of specified GID. If no child, returns {}.
+      description: 'Returns all child GID list of specified GID. If no child, returns {}.'
       operationId: getChildGIDList
       produces:
         - application/json
@@ -178,7 +220,6 @@ paths:
                 type: array
                 items:
                   type: string
-                  format: 64byte
         '404':
           description: GID not found
   '/gid/{GID}/devices':
@@ -186,7 +227,9 @@ paths:
       tags:
         - gid
       summary: Returns all child device GID list of specified GID
-      description: Returns all child device GID list of specified GID. If no child device, return {}.
+      description: >-
+        Returns all child device GID list of specified GID. If no child device,
+        return {}.
       operationId: getDeviceGIDList
       produces:
         - application/json
@@ -210,49 +253,14 @@ paths:
                 type: array
                 items:
                   type: string
-                  format: 64byte
         '404':
           description: GID not found
-  # '/gid/{GID}/wallets':
-  #   get:
-  #     tags:
-  #       - gid
-  #     summary: Returns all wallet GID list of specified GID
-  #     description: Returns all wallet GID list of specified GID. If no wallet, return {}.
-  #     operationId: getWalletGIDList
-  #     produces:
-  #       - application/json
-  #     parameters:
-  #       - name: api_key
-  #         in: header
-  #         required: false
-  #         type: string
-  #       - name: GID
-  #         in: path
-  #         description: GID to get wallets
-  #         required: true
-  #         type: string
-  #     responses:
-  #       '200':
-  #         description: successful operation
-  #         schema:
-  #           type: object
-  #           properties:
-  #             wallets:
-  #               type: array
-  #               items:
-  #                 type: string
-  #                 format: 64byte
-  #       '404':
-  #         description: GID not found
-
 definitions:
   GID:
     type: object
     properties:
       gid:
         type: string
-        format: 64byte
       type:
         type: string
         enum:
@@ -267,10 +275,8 @@ definitions:
         type: array
         items:
           type: string
-          format: 64byte
       key:
         type: string
-        format: 64byte
       metadata:
         type: object
         description: Data of GID
