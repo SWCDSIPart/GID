@@ -32,9 +32,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-//	"strconv"
-//	"strings"
 
+	"github.com/satori/go.uuid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
 )
@@ -116,6 +115,7 @@ func (s *SmartContract) createGID(APIstub shim.ChaincodeStubInterface, args []st
 
 	var gid0 GID
 	_= json.Unmarshal([]byte(args[0]), &gid0)
+	gid0.Gid = uuid.Must(uuid.NewV4()).String()
 	valAsBytes, _ := json.Marshal(gid0)
 	APIstub.PutState(gid0.Gid, valAsBytes)
 
