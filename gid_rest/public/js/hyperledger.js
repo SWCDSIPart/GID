@@ -51,12 +51,17 @@ exports.invokeGID = function(req,res,ip,username,method){
   	// must send the proposal to endorsing peers
     var method_name;
     var argument;
-    if(method == 'CREATE' || method == 'UPDATE'){
+    if(method == 'CREATE') {
       method_name = 'createGID';
-      argument = [req.body.gid, JSON.stringify(req.body)];
-    }else{
+      argument = [JSON.stringify(req.body)];
+		}
+		else if(method == 'UPDATE') {
+			method_name = 'updateGID';
+      argument = [req.params.gid, JSON.stringify(req.body)];
+		}
+		else{
       method_name = 'deleteGID';
-      argument = [req.body.gid];
+      argument = [req.params.gid];
     }
   	var request = {
   		//targets: let default to the peer assigned to the client
@@ -136,7 +141,12 @@ exports.invokeGID = function(req,res,ip,username,method){
   				reject(new Error('There was a problem with the eventhub ::'+err));
   			});
   		});
-  		promises.push(txPromise);
+			promises.push(txPromise);
+
+			if(method == 'CREATE') {
+				var resp = proposalResponses[0].response.payload.toString();
+				promises.push(Promise.resolve(JSON.parse(resp)));
+			}
 
   		return Promise.all(promises);
   	} else {
@@ -154,7 +164,10 @@ exports.invokeGID = function(req,res,ip,username,method){
 
   	if(results && results[1] && results[1].event_status === 'VALID') {
   		console.log('Successfully committed the change to the ledger by the peer');
-      res.send({result:'Successfully committed the change to the ledger by the peer'});
+      res.status(200).send({
+				result:'Successfully committed the change to the ledger by the peer',
+				data: results[2]
+			});
   	} else {
   		console.log('Transaction failed to be committed to the ledger due to ::'+results[1].event_status);
       res.status(500).send({result:'Transaction failed to be committed to the ledger'});
@@ -183,7 +196,7 @@ exports.queryGID = function(req,res,ip,username){
   var tx_id = null;
 
   // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
-  Fabric_Client.newDefaultKeyValueStore({ path: store_path
+  return Fabric_Client.newDefaultKeyValueStore({ path: store_path
   }).then((state_store) => {
     // assign the store to the fabric client
     fabric_client.setStateStore(state_store);
@@ -210,7 +223,7 @@ exports.queryGID = function(req,res,ip,username){
   		args: [req.params.gid]
   	};
 
-    channel.queryByChaincode(request).then((query_responses) => {
+    return channel.queryByChaincode(request).then((query_responses) => {
   		console.log("Query has completed, checking results");
   		// query_responses could have more than one  results if there multiple peers were used as targets
   		if (query_responses && query_responses.length == 1) {
@@ -219,8 +232,14 @@ exports.queryGID = function(req,res,ip,username){
           res.status(500).send({result:'error from query'});
   			} else {
           //console.log(query_responses[0].toString());
-  				console.log("Response is " + query_responses[0].toString());
-	        res.send(query_responses[0].toString());
+					console.log("Response is " + query_responses[0].toString());
+					if(query_responses[0].length > 0) {
+						var queryResult = JSON.parse(query_responses[0].toString());
+						return Promise.resolve(queryResult);
+					}
+					else {
+						return Promise.reject(new Error('GID not found'));
+					}
   			}
   		} else {
   			console.log("No payloads were returned from query");
@@ -229,7 +248,91 @@ exports.queryGID = function(req,res,ip,username){
 
   	});
   }).catch((err) => {
-      console.error('FAiled to query successfully :: ' + err);
-      res.status(500).send({result:'FAiled to query successfully'});
+			if(err.message == 'GID not found') {
+				res.status(400).send("GID not found");
+			}
+			else {
+				console.error('FAiled to query successfully :: ' + err);
+      	res.status(500).send({result:'FAiled to query successfully'});
+			}
+  });
+};
+
+exports.queryDevicesByGID = function(req,res,ip,username){
+  var fabric_client = new Fabric_Client();
+
+  // setup the fabric network
+  var peerIP=ip;
+  var channel = fabric_client.newChannel('mychannel');
+  var peer = fabric_client.newPeer('grpc://'+peerIP+':7051');
+  channel.addPeer(peer);
+
+  //
+  var store_path = path.join(__dirname, 'hfc-key-store');
+  console.log('Store path:'+store_path);
+
+  var member_user = null;
+  var tx_id = null;
+
+  // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
+  return Fabric_Client.newDefaultKeyValueStore({ path: store_path
+  }).then((state_store) => {
+    // assign the store to the fabric client
+    fabric_client.setStateStore(state_store);
+    var crypto_suite = Fabric_Client.newCryptoSuite();
+    // use the same location for the state store (where the users' certificate are kept)
+    // and the crypto store (where the users' keys are kept)
+    var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
+    crypto_suite.setCryptoKeyStore(crypto_store);
+    fabric_client.setCryptoSuite(crypto_suite);
+
+    // get the enrolled user from persistence, this user will sign all requests
+    return fabric_client.getUserContext(username, true);
+  }).then((user_from_store) => {
+    if (user_from_store && user_from_store.isEnrolled()) {
+      console.log('Successfully loaded '+username+' from persistence');
+      member_user = user_from_store;
+    } else {
+      //throw new Error('Failed to get user1.... run registerUser.js');
+    }
+    const request = {
+  		//targets : --- letting this default to the peers assigned to the channel
+  		chaincodeId: 'gid',
+  		fcn: 'getDevices',
+  		args: [req.params.gid]
+  	};
+
+    return channel.queryByChaincode(request).then((query_responses) => {
+  		console.log("Query has completed, checking results");
+  		// query_responses could have more than one  results if there multiple peers were used as targets
+  		if (query_responses && query_responses.length == 1) {
+  			if (query_responses[0] instanceof Error) {
+  				console.error("error from query = " + query_responses[0]);
+          res.status(500).send({result:'error from query'});
+  			} else {
+          //console.log(query_responses[0].toString());
+					console.log("Response is " + query_responses[0].toString());
+					if(query_responses[0].length > 0) {
+						var queryResult = JSON.parse(query_responses[0].toString());
+						return Promise.resolve(queryResult);
+					}
+					else {
+						return Promise.reject(new Error('GID not found'));
+					}
+  			}
+  		} else {
+  			console.log("No payloads were returned from query");
+        res.status(500).send({result:'No payloads were returned from query'});
+  		}
+
+  	});
+  }).catch((err) => {
+			if(err.message == 'GID not found') {
+				res.status(400).send("GID not found");
+			}
+			else {
+				console.error('FAiled to query successfully :: ' + err);
+      	res.status(500).send({result:'FAiled to query successfully'});
+			}
   });
 };

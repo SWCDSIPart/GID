@@ -4,10 +4,14 @@ var cache = require('./cache.js');
 var enrollRegister = require('./enrollAdminRegisterUser.js');
 var config = require('./config');
 
+var localIP = '127.0.0.1';
+var testUser = 'user1';
+
 exports.addNewGID = function(req,res){
   if(!config.mysql.use){
-      return;
-      ledger.invokeGID(req,res,'10.113.58.69','user2','CREATE');
+      // return;
+      ledger.invokeGID(req,res,localIP, testUser,'CREATE');
+      return ;
   }
 
   mysql.isExistGID(req.body.gid, result => {
@@ -16,7 +20,7 @@ exports.addNewGID = function(req,res){
       res.status(500).send({result:'already Exist'});
     } else {
       mysql.insert({gid: req.body.gid, value: req.body.toString()}, result => {
-        ledger.invokeGID(req,res,'10.113.58.69','user2','CREATE');
+        ledger.invokeGID(req, res, localIP, testUser,'CREATE');
         if(result == 'OK'){
         }else{
           console.log('insert fail!!!');
@@ -39,23 +43,33 @@ exports.findGIDbyPhone = function(req,res){
 
 exports.queryDataByGID = function(req,res){
   if(!config.mysql.use){
-    ledger.queryGID(req,res,'127.0.0.1','user1');
-    return;
+    return ledger.queryGID(req,res, localIP, testUser);
   }
 
   mysql.queryGID(req.body.gid, rows => {
     if(rows){
       res.send(rows);
     }else{
-      ledger.queryGID(req,res,'10.113.58.69','user2');
+      ledger.queryGID(req,res, localIP, testUser);
     }
   });
 };
 
+exports.queryDevicesByGID = function(req,res){
+  if(!config.mysql.use){
+    return ledger.queryDevicesByGID(req,res, localIP, testUser);
+  }
+};
+
 exports.updateGID = function(req,res){
+  if(!config.mysql.use){
+    ledger.invokeGID(req,res, localIP, testUser, 'UPDATE');
+    return;
+  }
+
   mysql.updateGID({gid:req.body.gid, value:req.body}, result => {
     if(result == 'OK'){
-      ledger.invokeGID(req,res,'10.113.58.69','user2','UPDATE');
+      ledger.invokeGID(req,res, localIP, testUser, 'UPDATE');
     }else{
       res.status(500).send({result:'update Fail'});
     }
@@ -63,9 +77,14 @@ exports.updateGID = function(req,res){
 };
 
 exports.deleteGID = function(req,res){
+  if(!config.mysql.use){
+    ledger.invokeGID(req,res, localIP, testUser,'DELETE');
+    return;
+  }
+
   mysql.deleteGID(req.body.gid, result => {
       if(result == 'OK'){
-        ledger.invokeGID(req,res,'10.113.58.69','user2','DELETE');
+        ledger.invokeGID(req,res, localIP, testUser,'DELETE');
       }else{
         res.status(500).send({result:"delete fail"});
       }
