@@ -67,10 +67,10 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 		chaincodeId: 'gid',
 		//fcn: 'getChildren',
 		//fcn: 'getDevices',
-		fcn: 'createGID',
+		fcn: 'queryGID',
 		//args: ['308C28BE168539B706A3CC965E1D124B1EFAEAE27C1AD5A627A5C1CDF2A19821']
 		//args: ['08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8']
-		args: ['{"gid":"", "type":"person", "parent":"", "children" : [""], "key":"", "metadata":""}']
+		args: ['2bf9552736fc4d1eb0e0ddce47b01ee4']
 	};
 
 	// send the query proposal to the peer
