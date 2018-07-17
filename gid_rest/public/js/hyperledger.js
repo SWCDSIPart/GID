@@ -59,16 +59,21 @@ exports.invokeGID = function(req,res,ip,username,method){
 			method_name = 'updateGID';
       argument = [req.params.gid, JSON.stringify(req.body)];
 		}
-		else{
+		else if(method == 'DELETE') {
       method_name = 'deleteGID';
       argument = [req.params.gid];
     }
+    else if(method == 'SETPARENT') {
+      method_name = 'setParent';
+      	console.log(req.params.gid);
+        	console.log(JSON.stringify(req.body.parent));
+      argument = [req.params.gid, JSON.stringify(req.body.parent)];
+    }
+
   	var request = {
   		//targets: let default to the peer assigned to the client
   		chaincodeId: 'gid',
   		fcn: method_name,
-  		//args: [''],
-  		//args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
   		args: argument,
   		chainId: 'mychannel',
   		txId: tx_id

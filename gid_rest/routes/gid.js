@@ -8,7 +8,7 @@ var service = require('./../public/js/service.js');
 router.post('/gid', function(req, res, next) {
     console.log("recv >>"+JSON.stringify(req.body));
     if(validator.isExistBody(req.body)) {
-      var error=validator.bodyCheck(req, ['type', 'parent', 'key']);
+      var error=validator.bodyCheck(req, ['type']);
       if(!error){
         service.addNewGID(req,res);
       }else{
@@ -51,7 +51,7 @@ router.get('/gid/:gid', function(req, res, next) {
 router.post('/gid/:gid', function(req, res, next) {
     console.log("recv >>"+JSON.stringify(req.body));
     if(validator.isExistBody(req.body)) {
-      var error=validator.bodyCheck(req, ['gid', 'type', 'parent', 'key']);
+      var error=validator.bodyCheck(req, ['gid', 'type']);
       if(!error){
         //TODO :: add logic
         service.updateGID(req,res);
@@ -79,25 +79,8 @@ router.get('/gid/:gid/parent', function(req, res, next) {
 });
 
 router.post('/gid/:gid/parent', function(req, res, next) {
-  service.queryDataByGID(req,res)
-    .then(result => {
-      if(result !== undefined) {
-        result.parent = req.body.parent;
-        req.body = result;
-        if(validator.isExistBody(req.body)) {
-          var error=validator.bodyCheck(req, ['parent']);
-          if(!error){
-            //TODO :: add logic
-            service.updateGID(req,res);
-            // res.send({result:'OK'});
-          }else{
-              res.status(405).send({error:'Invalid input'});
-          }
-        }else{
-            res.status(405).send({error:"body is empty!!"});
-        }
-      }
-    });
+  console.log("recv >>"+JSON.stringify(req.params));
+  service.setParent(req,res);
 });
 
 router.get('/gid/:gid/children', function(req, res, next) {

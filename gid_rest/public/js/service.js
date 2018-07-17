@@ -4,7 +4,8 @@ var cache = require('./cache.js');
 var enrollRegister = require('./enrollAdminRegisterUser.js');
 var config = require('./config');
 
-var localIP = '127.0.0.1';
+//var localIP = '127.0.0.1';
+var localIP = '192.168.0.191';
 var testUser = 'user1';
 
 exports.addNewGID = function(req,res){
@@ -31,15 +32,6 @@ exports.addNewGID = function(req,res){
   });
 };
 
-exports.findGIDbyPhone = function(req,res){
-  mysql.query('phone', req.query.phone, rows => {
-    if(rows){
-      res.send(rows);
-    }else{
-      res.status(500).send({result:'not exist gid'});
-    }
-  });
-};
 
 exports.queryDataByGID = function(req,res){
   if(!config.mysql.use){
@@ -91,17 +83,14 @@ exports.deleteGID = function(req,res){
   });
 };
 
-exports.bankAccountRegistration = function(req,res){
-  //TODO:: logic add
+exports.setParent = function(req,res){
+  ledger.invokeGID(req, res, localIP, testUser,'SETPARENT');
+  if(result == 'OK'){
+  }else{
+    res.status(500).send({result:'Ok'});
+  }
 };
 
-exports.getUsersBank = function(req,res){
-  //TODO:: logic add
-};
-
-exports.deleteUsersBankAccount = function(req,res){
-  //TODO:: logic add
-};
 
 exports.enrollRegister = function(req,res){
     enrollRegister.enrollAdminRegisterUser(req.params.ip, req.params.userName, res);
