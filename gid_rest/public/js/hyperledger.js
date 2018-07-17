@@ -65,9 +65,7 @@ exports.invokeGID = function(req,res,ip,username,method){
     }
     else if(method == 'SETPARENT') {
       method_name = 'setParent';
-      	console.log(req.params.gid);
-        	console.log(JSON.stringify(req.body.parent));
-      argument = [req.params.gid, JSON.stringify(req.body.parent)];
+      argument = [req.params.gid, req.body.parent];
     }
 
   	var request = {

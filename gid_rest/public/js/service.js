@@ -85,10 +85,6 @@ exports.deleteGID = function(req,res){
 
 exports.setParent = function(req,res){
   ledger.invokeGID(req, res, localIP, testUser,'SETPARENT');
-  if(result == 'OK'){
-  }else{
-    res.status(500).send({result:'Ok'});
-  }
 };
 
 
