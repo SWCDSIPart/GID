@@ -131,21 +131,19 @@ func (s *SmartContract) createGID(APIstub shim.ChaincodeStubInterface, args []st
 		fmt.Println("Duplicated GID created: " ,tmp, ". Try again.")
   }
 
-
 	valAsBytes, _ := json.Marshal(gid0)
 	er := APIstub.PutState(gid0.Gid, valAsBytes)
 	if er != nil {
 		return shim.Error(er.Error())
 	}
 
-	fmt.Println("Added: ", gid0)
+	fmt.Println("Created: ", gid0)
 
 	return shim.Success(valAsBytes)
 }
 
 
 func (s *SmartContract) queryGID(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
@@ -155,6 +153,7 @@ func (s *SmartContract) queryGID(APIstub shim.ChaincodeStubInterface, args []str
 		return shim.Error(er.Error())
 	}
 
+	fmt.Println("Get: ", args[0])
 	return shim.Success(valAsBytes)
 }
 
@@ -173,6 +172,8 @@ func (s *SmartContract) updateGID(APIstub shim.ChaincodeStubInterface, args []st
 
 	valAsBytes, _ := json.Marshal(gid0)
 	APIstub.PutState(gid0.Gid, valAsBytes)
+
+	fmt.Println("GID updated: ", gid0)
 
 	return shim.Success(nil)
 }
@@ -211,6 +212,8 @@ func (s *SmartContract) setParent(APIstub shim.ChaincodeStubInterface, args []st
 	if len(args) != 2 {
 		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
+
+	fmt.Println("Set Parent - child: ", args[0], "  parent: ", args[1])
 
 	var gid0, parent GID
 	valAsBytes, _ := APIstub.GetState(args[0])
@@ -260,11 +263,21 @@ func (s *SmartContract) setParent(APIstub shim.ChaincodeStubInterface, args []st
 			parent.Children = append(parent.Children, args[0])
 	}
 
-	val0, _ := json.Marshal(gid0)
-	APIstub.PutState(gid0.Gid, val0)
+	val0,_ := json.Marshal(gid0)
+	er0 := APIstub.PutState(gid0.Gid, val0)
 
-	val1, _ := json.Marshal(parent)
-	APIstub.PutState(parent.Gid, val1)
+	val1,_ := json.Marshal(parent)
+	er1 := APIstub.PutState(parent.Gid, val1)
+
+	if er0 != nil {
+		fmt.Println(er0.Error())
+		return shim.Error(er0.Error())
+	}
+
+	if er1 != nil {
+		fmt.Println(er1.Error())
+		return shim.Error(er1.Error())
+	}
 
 	return shim.Success(nil)
 }
@@ -345,8 +358,6 @@ func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Respo
 		_= json.Unmarshal(resp.GetPayload(), &gidjson)
 
 		gidlist = append(gidlist, gidjson.Gid)
-
-		fmt.Println("Gid: ", gidjson.Gid)
 		i = i + 1
 	}
 
