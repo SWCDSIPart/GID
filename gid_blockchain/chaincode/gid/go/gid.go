@@ -32,6 +32,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/satori/go.uuid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -62,7 +63,6 @@ type DEVICES struct {
 type PARENT struct {
 	Parent string `json:"parent"`
 }
-
 
 /*
  * The Init method is called when the Smart Contract "gid" is instantiated by the blockchain network
@@ -115,9 +115,30 @@ func (s *SmartContract) createGID(APIstub shim.ChaincodeStubInterface, args []st
 
 	var gid0 GID
 	_= json.Unmarshal([]byte(args[0]), &gid0)
-	gid0.Gid = uuid.Must(uuid.NewV4()).String()
+
+	if gid0.Gid != "" {
+		return shim.Error("GID is specified. GID MUST be empty.")
+	}
+
+	for {
+		tmp := uuid.Must(uuid.NewV4()).String()
+		tmp = strings.Replace(tmp, "-", "", -1)
+		gidVal, _ := APIstub.GetState(tmp)
+		if len(gidVal) == 0 {
+			gid0.Gid = tmp
+			break
+		}
+		fmt.Println("Duplicated GID created: " ,tmp, ". Try again.")
+  }
+
+
 	valAsBytes, _ := json.Marshal(gid0)
-	APIstub.PutState(gid0.Gid, valAsBytes)
+	er := APIstub.PutState(gid0.Gid, valAsBytes)
+	if er != nil {
+		return shim.Error(er.Error())
+	}
+
+	fmt.Println("Added: ", gid0)
 
 	return shim.Success(valAsBytes)
 }
@@ -128,7 +149,11 @@ func (s *SmartContract) queryGID(APIstub shim.ChaincodeStubInterface, args []str
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
-	valAsBytes, _ := APIstub.GetState(args[0])
+
+	valAsBytes, er := APIstub.GetState(args[0])
+	if er != nil {
+		return shim.Error(er.Error())
+	}
 
 	return shim.Success(valAsBytes)
 }
@@ -189,6 +214,10 @@ func (s *SmartContract) setParent(APIstub shim.ChaincodeStubInterface, args []st
 
 	var gid0, parent GID
 	valAsBytes, _ := APIstub.GetState(args[0])
+	if len(valAsBytes) == 0 {
+		return shim.Error("No GID object found.")
+	}
+
 	_= json.Unmarshal(valAsBytes, &gid0)
 
 	if gid0.Type == "person" {
@@ -198,6 +227,10 @@ func (s *SmartContract) setParent(APIstub shim.ChaincodeStubInterface, args []st
 	if args[1] == "" {
 		// remove child from parent GID object
 		parentVal, _ := APIstub.GetState(gid0.Parent)
+		if len(parentVal) == 0 {
+			return shim.Error("No parent GID object found.")
+		}
+
 		_= json.Unmarshal(parentVal, &parent)
 
 		for i, v := range parent.Children {
@@ -214,11 +247,15 @@ func (s *SmartContract) setParent(APIstub shim.ChaincodeStubInterface, args []st
 				return shim.Error("Parent GID is not empty.")
 			}
 
+			parentVal, _ := APIstub.GetState(args[1])
+			if len(parentVal) == 0 {
+				return shim.Error("No parent GID object found.")
+			}
+
+			_= json.Unmarshal(parentVal, &parent)
+
 			// add child to parent GID object
 			gid0.Parent = args[1]
-
-			parentVal, _ := APIstub.GetState(gid0.Parent)
-			_= json.Unmarshal(parentVal, &parent)
 
 			parent.Children = append(parent.Children, args[0])
 	}
@@ -240,6 +277,9 @@ func (s *SmartContract) getChildren(APIstub shim.ChaincodeStubInterface, args []
 
 	var gid0 GID
 	valAsBytes, _ := APIstub.GetState(args[0])
+	if len(valAsBytes) == 0 {
+		return shim.Error("No GID object found.")
+	}
 	_= json.Unmarshal(valAsBytes, &gid0)
 
 	var childList = CHILDREN {gid0.Children}
@@ -257,6 +297,9 @@ func (s *SmartContract) getDevices(APIstub shim.ChaincodeStubInterface, args []s
 	var gid0 GID
 	var deviceList DEVICES
 	valAsBytes, _ := APIstub.GetState(args[0])
+	if len(valAsBytes) == 0 {
+		return shim.Error("No GID object found.")
+	}
 	_= json.Unmarshal(valAsBytes, &gid0)
 
 	i := 0
@@ -276,26 +319,42 @@ func (s *SmartContract) getDevices(APIstub shim.ChaincodeStubInterface, args []s
 	return shim.Success(devices)
 }
 
-
 func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Response {
-	vals := [][]byte{
-		[]byte(`{"gid":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "type":"person", "parent":"", "children" : ["F5AA85054BC2A1912996F9E4B2685F8088CEDEFA7997315E484160F82523EB48", "23E7CDC6D42116565405B57CA27F11A01640C6FEB482BC4DDB0B6E928F7CBBE3", "F16551334EDB3EF1091AF1409C6993C258352553F9FE4FF8B2DC3DE99617BDDC", "00DEDD0C67B1A74792A93D899C82F2E2D89272D2BE541D07E6B58705251C333E"], "key":"", "metadata":""}`),
-		[]byte(`{"gid":"23E7CDC6D42116565405B57CA27F11A01640C6FEB482BC4DDB0B6E928F7CBBE3", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`),
-		[]byte(`{"gid":"F5AA85054BC2A1912996F9E4B2685F8088CEDEFA7997315E484160F82523EB48", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`),
-		[]byte(`{"gid":"F16551334EDB3EF1091AF1409C6993C258352553F9FE4FF8B2DC3DE99617BDDC", "type":"wallet", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`),
-		[]byte(`{"gid":"00DEDD0C67B1A74792A93D899C82F2E2D89272D2BE541D07E6B58705251C333E", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [""], "key":"", "metadata":""}`)}
+	// vals := [][]byte{
+	// 	[]byte(`{"gid":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "type":"person", "parent":"", "children" : ["F5AA85054BC2A1912996F9E4B2685F8088CEDEFA7997315E484160F82523EB48", "23E7CDC6D42116565405B57CA27F11A01640C6FEB482BC4DDB0B6E928F7CBBE3", "F16551334EDB3EF1091AF1409C6993C258352553F9FE4FF8B2DC3DE99617BDDC", "00DEDD0C67B1A74792A93D899C82F2E2D89272D2BE541D07E6B58705251C333E"], "key":"", "metadata":""}`),
+	// 	[]byte(`{"gid":"23E7CDC6D42116565405B57CA27F11A01640C6FEB482BC4DDB0B6E928F7CBBE3", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [], "key":"", "metadata":""}`),
+	// 	[]byte(`{"gid":"F5AA85054BC2A1912996F9E4B2685F8088CEDEFA7997315E484160F82523EB48", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [], "key":"", "metadata":""}`),
+	// 	[]byte(`{"gid":"F16551334EDB3EF1091AF1409C6993C258352553F9FE4FF8B2DC3DE99617BDDC", "type":"wallet", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [], "key":"", "metadata":""}`),
+	// 	[]byte(`{"gid":"00DEDD0C67B1A74792A93D899C82F2E2D89272D2BE541D07E6B58705251C333E", "type":"device", "parent":"08A4D1DB1438FF353FA5E8B29830B4088377898568CA47A50EB7E386453E3AA8", "children" : [], "key":"", "metadata":""}`)}
+
+	var gidlist []string
+	valstr := []string{
+	(`{"gid":"", "type":"person", "parent":"", "children" : [], "key":"", "metadata":""}`),
+	(`{"gid":"", "type":"device", "parent":"", "children" : [], "key":"", "metadata":""}`),
+	(`{"gid":"", "type":"device", "parent":"", "children" : [], "key":"", "metadata":""}`),
+	(`{"gid":"", "type":"wallet", "parent":"", "children" : [], "key":"", "metadata":""}`)}
 
 	i := 0
-	for i < len(vals) {
-		var gid0 GID
-		_= json.Unmarshal([]byte(vals[i]), &gid0)
+	for i < len(valstr) {
+		args := []string {
+			valstr[i]}
 
- 		APIstub.PutState(gid0.Gid, vals[i])
+		resp := s.createGID(APIstub, args)
 
- 		fmt.Println("Added", vals[i])
+		var gidjson GID
+		_= json.Unmarshal(resp.GetPayload(), &gidjson)
+
+		gidlist = append(gidlist, gidjson.Gid)
+
+		fmt.Println("Gid: ", gidjson.Gid)
 		i = i + 1
 	}
 
+	s.setParent(APIstub, []string{gidlist[1], gidlist[0]})
+	s.setParent(APIstub, []string{gidlist[2], gidlist[0]})
+	s.setParent(APIstub, []string{gidlist[3], gidlist[0]})
+
+	return shim.Success(nil)
 
 	//
   //       vals := []GID{
@@ -337,7 +396,7 @@ func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Respo
 	// 	j = j + 1
 	// }
 	//
-	return shim.Success(nil)
+	// return shim.Success(nil)
 }
 
 
