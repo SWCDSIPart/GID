@@ -17,11 +17,11 @@ var swaggerUi = require('swagger-ui-express');
 // https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md
 var swaggerDefinition = {
   info: { // API informations (required)
-    title: 'Fintto RESTful Server', // Title (required)
-    version: '0.0.1', // Version (required)
-    description: 'RESTful API for Fintto Application', // Description (optional)
+    title: 'GID REST API Specifications', // Title (required)
+    version: '0.2.0', // Version (required)
+    description: 'RESTful API for GID Application', // Description (optional)
   },
-  host: '10.113.58.69:3000', // Host (optional)
+  //host: '10.113.58.69:3000', // Host (optional)
   basePath: '/', // Base path (optional)
   schemes: ['http'],
 };
@@ -56,7 +56,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(expressValidator());
-//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/', gid);
 //app.use('/', fintto);
