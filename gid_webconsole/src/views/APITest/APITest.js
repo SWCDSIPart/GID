@@ -47,7 +47,7 @@ class APITest extends Component {
               example: {
                 "gid": "",
                 "type": "person",
-                "parent": "parent",
+                "parent": "",
                 "children": [],
                 "key": "key",
                 "metadata": {}
@@ -73,7 +73,7 @@ class APITest extends Component {
               example: {
                 "gid": "8e29d8973bad4b51b12510ba9a754697",
                 "type": "person",
-                "parent": "parent",
+                "parent": "",
                 "children": [],
                 "key": "key",
                 "metadata": {}
@@ -105,7 +105,7 @@ class APITest extends Component {
               uri: '/gid/{GID}/parent',
               description: 'Set parent of designated GID',
               example: {
-                "parent": "newparent"
+                "parent": ""
               },
             }} />
           </Col>
