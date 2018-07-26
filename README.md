@@ -2,7 +2,7 @@
 
 ### Set IP of web server
 Set ip address in gid_rest/public/js/service.js:8
->  var localIP = '192.168.0.191'; 
+>  var localIP = '192.168.0.191';  // 서버의 IP 주소로 변경
 
 ### How to run
 
